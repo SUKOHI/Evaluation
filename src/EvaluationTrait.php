@@ -64,7 +64,7 @@ trait EvaluationTrait {
         return $this->clearEvaluation('dislike');
     }
 
-    public function hasDisike($user_id)
+    public function hasDislike($user_id)
     {
         return $this->hasEvaluation('dislike', $user_id);
     }
