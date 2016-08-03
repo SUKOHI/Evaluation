@@ -4,11 +4,11 @@ use Sukohi\Evaluation\Evaluation;
 
 trait EvaluationTrait {
 
-    private $model;
+    private $evaluation_model;
 
     public function __construct()
     {
-        $this->model = __CLASS__;
+        $this->evaluation_model = __CLASS__;
     }
     
     // Relationships
@@ -141,7 +141,7 @@ trait EvaluationTrait {
         }
 
         $evaluation = new Evaluation;
-        $evaluation->model = $this->model;
+        $evaluation->model = $this->evaluation_model;
         $evaluation->parent_id = $this->id;
         $evaluation->type_id = $this->getTypeId($type);
         $evaluation->user_id = $user_id;
@@ -173,7 +173,7 @@ trait EvaluationTrait {
     private function whereEvaluationCommon($type, $user_id = -1)
     {
         $type_id = $this->getTypeId($type);
-        $query = Evaluation::where('model', $this->model)
+        $query = Evaluation::where('model', $this->evaluation_model)
             ->where('parent_id', $this->id)
             ->where('type_id', $type_id);
 
