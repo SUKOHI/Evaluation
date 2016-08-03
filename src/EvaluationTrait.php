@@ -4,11 +4,20 @@ use Sukohi\Evaluation\Evaluation;
 
 trait EvaluationTrait {
 
+    private $evaluations_init_flag = false;
+    private $evaluations_user_ids = [];
+    private $evaluations_types = [
+        '1' => 'like',
+        '2' => 'dislike',
+        '3' => 'favorite',
+        '4' => 'remember'
+    ];
+
     // Relationships
 
     public function evaluations()
     {
-        return $this->hasMany('Sukohi\Evaluation\Evaluation', 'parent_id', 'id');
+        return $this->hasMany('Sukohi\Evaluation\Evaluation', 'parent_id', 'id')->where('model', __CLASS__);
     }
 
     // Like
@@ -123,12 +132,15 @@ trait EvaluationTrait {
 
     private function addEvaluation($type, $user_id)
     {
+        $this->evaluationInit();
+
         if($this->hasEvaluation($type, $user_id)) {
 
             return false;
 
         }
 
+        $this->evaluations_user_ids[$type][$user_id] = true;
         $evaluation = new Evaluation;
         $evaluation->model = __CLASS__;
         $evaluation->parent_id = $this->id;
@@ -140,39 +152,39 @@ trait EvaluationTrait {
 
     private function removeEvaluation($type, $user_id)
     {
+        $this->evaluationInit();
+        $this->evaluations_user_ids[$type][$user_id] = false;
         return $this->whereEvaluationCommon($type, $user_id)->delete();
     }
 
     private function clearEvaluation($type)
     {
+        $this->evaluationInit();
+
+        foreach ($this->evaluations_user_ids[$type] as $user_id => $boolean) {
+
+            $this->evaluations_user_ids[$type][$user_id] = false;
+
+        }
+
         return $this->whereEvaluationCommon($type)->delete();
     }
 
     private function hasEvaluation($type, $user_id)
     {
-        return $this->whereEvaluationCommon($type, $user_id)->exists();
+        $this->evaluationInit();
+        return array_get($this->evaluations_user_ids[$type], $user_id, false);
     }
 
     private function evaluationCount($type)
     {
-        $count = 0;
-        $type_id = $this->getTypeId($type);
+        $this->evaluationInit();
+        $evaluations = array_where($this->evaluations_user_ids[$type], function($user_id, $value){
 
-        if($this->evaluations->count() > 0) {
+            return $value;
 
-            foreach ($this->evaluations as $evaluation) {
-
-                if($evaluation->type_id == $type_id) {
-
-                    $count++;
-
-                }
-
-            }
-
-        }
-
-        return $count;
+        });
+        return count($evaluations);
     }
 
     private function whereEvaluationCommon($type, $user_id = -1)
@@ -193,15 +205,41 @@ trait EvaluationTrait {
 
     // Others
 
+    private function evaluationInit()
+    {
+        if(!$this->evaluations_init_flag) {
+
+            $this->load('evaluations');
+
+            foreach ($this->evaluations_types as $type) {
+
+                $this->evaluations_user_ids[$type] = [];
+
+            }
+            
+            $this->evaluations_init_flag = true;
+            $evaluations = $this->evaluations;
+
+            if($evaluations->count() > 0) {
+
+                foreach ($evaluations as $evaluation) {
+
+                    $type_id = $evaluation->type_id;
+                    $type = $this->evaluations_types[$type_id];
+                    $user_id = $evaluation->user_id;
+                    $this->evaluations_user_ids[$type][$user_id] = true;
+
+                }
+
+            }
+
+        }
+
+    }
+
     private function getTypeId($type)
     {
-        $type_ids = [
-            '1' => 'like',
-            '2' => 'dislike',
-            '3' => 'favorite',
-            '4' => 'remember'
-        ];
-        return array_search($type, $type_ids);
+        return array_search($type, $this->evaluations_types);
     }
 
 }
