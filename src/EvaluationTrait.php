@@ -4,18 +4,11 @@ use Sukohi\Evaluation\Evaluation;
 
 trait EvaluationTrait {
 
-    private $evaluation_model;
-
-    public function __construct()
-    {
-        $this->evaluation_model = __CLASS__;
-    }
-    
     // Relationships
 
-    public function evaluation()
+    public function evaluations()
     {
-        $this->hasMany('Sukohi\Evaluation\Evaluation', 'parent_id', 'id');
+        return $this->hasMany('Sukohi\Evaluation\Evaluation', 'parent_id', 'id');
     }
 
     // Like
@@ -40,10 +33,9 @@ trait EvaluationTrait {
         return $this->hasEvaluation('like', $user_id);
     }
 
-    public function getLikeCountAttribute() {
-
+    public function getLikeCountAttribute()
+    {
         return $this->evaluationCount('like');
-
     }
 
     // Dislike
@@ -68,10 +60,9 @@ trait EvaluationTrait {
         return $this->hasEvaluation('dislike', $user_id);
     }
 
-    public function getDislikeCountAttribute() {
-
+    public function getDislikeCountAttribute()
+    {
         return $this->evaluationCount('dislike');
-
     }
 
     // Favorite
@@ -96,10 +87,9 @@ trait EvaluationTrait {
         return $this->hasEvaluation('favorite', $user_id);
     }
 
-    public function getFavoriteCountAttribute() {
-
+    public function getFavoriteCountAttribute()
+    {
         return $this->evaluationCount('favorite');
-
     }
 
     // Remember
@@ -124,10 +114,9 @@ trait EvaluationTrait {
         return $this->hasEvaluation('remember', $user_id);
     }
 
-    public function getRememberCountAttribute() {
-
+    public function getRememberCountAttribute()
+    {
         return $this->evaluationCount('remember');
-
     }
 
     // Main Methods
@@ -141,7 +130,7 @@ trait EvaluationTrait {
         }
 
         $evaluation = new Evaluation;
-        $evaluation->model = $this->evaluation_model;
+        $evaluation->model = __CLASS__;
         $evaluation->parent_id = $this->id;
         $evaluation->type_id = $this->getTypeId($type);
         $evaluation->user_id = $user_id;
@@ -166,14 +155,30 @@ trait EvaluationTrait {
 
     private function evaluationCount($type)
     {
-        return $this->whereEvaluationCommon($type)->count();
+        $count = 0;
+        $type_id = $this->getTypeId($type);
 
+        if($this->evaluations->count() > 0) {
+
+            foreach ($this->evaluations as $evaluation) {
+
+                if($evaluation->type_id == $type_id) {
+
+                    $count++;
+
+                }
+
+            }
+
+        }
+
+        return $count;
     }
 
     private function whereEvaluationCommon($type, $user_id = -1)
     {
         $type_id = $this->getTypeId($type);
-        $query = Evaluation::where('model', $this->evaluation_model)
+        $query = Evaluation::where('model', __CLASS__)
             ->where('parent_id', $this->id)
             ->where('type_id', $type_id);
 
@@ -188,8 +193,8 @@ trait EvaluationTrait {
 
     // Others
 
-    private function getTypeId($type) {
-
+    private function getTypeId($type)
+    {
         $type_ids = [
             '1' => 'like',
             '2' => 'dislike',
@@ -197,7 +202,6 @@ trait EvaluationTrait {
             '4' => 'remember'
         ];
         return array_search($type, $type_ids);
-
     }
 
 }
