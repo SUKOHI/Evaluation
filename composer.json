@@ -1,0 +1,19 @@
+{
+    "name": "sukohi/evaluation",
+    "description": "Your package description here.",
+    "authors": [
+        {
+            "name": "Sukohi",
+            "email": "test@example.com"
+        }
+    ],
+    "require": {
+        "laravel/framework": "~5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Sukohi\\Evaluation\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
