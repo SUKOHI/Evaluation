@@ -1,12 +1,13 @@
 {
     "name": "sukohi/evaluation",
-    "description": "Your package description here.",
+    "description": "A Laravel package to manage evaluation data like LIKE, DISLIKE, FAVORITE and REMEMBER.",
     "authors": [
         {
             "name": "Sukohi",
-            "email": "test@example.com"
+            "email": "capilano.sukohi@gmail.com"
         }
     ],
+    "license": "MIT",
     "require": {
         "laravel/framework": "~5.0"
     },
