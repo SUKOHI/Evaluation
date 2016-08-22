@@ -203,6 +203,50 @@ trait EvaluationTrait {
         return $query;
     }
 
+    // Scope
+
+    public function scopeOrderByEvaluation($query, $type, $direction = 'asc')
+    {
+        $type_id = $this->getTypeId($type);
+        $evaluations = Evaluation::select(\DB::raw('COUNT(id) AS COUNT_ID'), 'parent_id')
+            ->where('model', __CLASS__)
+            ->where('type_id', $type_id)
+            ->groupBy('parent_id')
+            ->orderBy('COUNT_ID', $direction)
+            ->lists('parent_id');
+
+        if($evaluations->count() > 0) {
+
+            $evaluation_ids = $evaluations->all();
+            $not_in_ids = self::whereNotIn('id', $evaluation_ids)->lists('id');
+            $ids = $evaluations->merge($not_in_ids);
+            $query->orderBy(\DB::raw('FIELD(id, '. $ids->implode(',') .')'));
+
+        }
+
+        return $query;
+    }
+
+    public function scopeOrderByLike($query, $direction = 'asc')
+    {
+        return $query->orderByEvaluation('like', $direction);
+    }
+
+    public function scopeOrderByDislike($query, $direction = 'asc')
+    {
+        return $query->orderByEvaluation('dislike', $direction);
+    }
+
+    public function scopeOrderByFavorite($query, $direction = 'asc')
+    {
+        return $query->orderByEvaluation('favorite', $direction);
+    }
+
+    public function scopeOrderByRemember($query, $direction = 'asc')
+    {
+        return $query->orderByEvaluation('remember', $direction);
+    }
+
     // Others
 
     private function evaluationInit()

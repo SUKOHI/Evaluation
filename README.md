@@ -113,6 +113,21 @@ Now you can use new methods from `EvaluationTrait`.
 
     echo $item->rememberCount;      // Get count
 
+# Order By Clause
+
+    $direction = 'asc'; // or desc
+    \App\Item::orderByEvaluation('like', $direction)->get();
+    \App\Item::orderByEvaluation('dislike', $direction)->get();
+    \App\Item::orderByEvaluation('favorite', $direction)->get();
+    \App\Item::orderByEvaluation('remember', $direction)->get();
+
+    // or
+    
+    \App\Item::orderByLike($direction)->get();
+    \App\Item::orderByDislike($direction)->get();
+    \App\Item::orderByFavorite($direction)->get();
+    \App\Item::orderByRemember($direction)->get();
+
 # License
 
 This package is licensed under the MIT License.
