@@ -128,6 +128,18 @@ Now you can use new methods from `EvaluationTrait`.
     \App\Item::orderByFavorite($direction)->get();
     \App\Item::orderByRemember($direction)->get();
 
+# Delete All Evaluations by User ID
+
+    $user_id = 1;
+
+    if(\App\Item::removeAllEvaluationsByUserId($user_id)) {
+
+        echo 'Deleted!';
+
+    }
+
+I suppose you use this method when a user delete his/her account. 
+
 # License
 
 This package is licensed under the MIT License.

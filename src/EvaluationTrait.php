@@ -12,6 +12,12 @@ trait EvaluationTrait {
         '3' => 'favorite',
         '4' => 'remember'
     ];
+    private $evaluation_time_ranges = [
+        'like' => ['start' => null, 'end' => null],
+        'dislike' => ['start' => null, 'end' => null],
+        'favorite' => ['start' => null, 'end' => null],
+        'remember' => ['start' => null, 'end' => null]
+    ];
 
     // Relationships
 
@@ -286,4 +292,10 @@ trait EvaluationTrait {
         return array_search($type, $this->evaluations_types);
     }
 
+    public static function removeAllEvaluationsByUserId($user_id)
+    {
+        return Evaluation::where('model', __CLASS__)
+            ->where('user_id', $user_id)
+            ->delete();
+    }
 }
