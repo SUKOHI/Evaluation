@@ -8,7 +8,7 @@ A Laravel package to manage evaluation data like LIKE, DISLIKE, FAVORITE and REM
 
 Execute the following composer command.
 
-    composer require sukohi/evaluation:2.*
+    composer require sukohi/evaluation:3.*
 
 Register the service provider & alias in app.php
 

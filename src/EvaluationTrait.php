@@ -219,12 +219,12 @@ trait EvaluationTrait {
             ->where('type_id', $type_id)
             ->groupBy('parent_id')
             ->orderBy('COUNT_ID', $direction)
-            ->lists('parent_id');
+            ->pluck('parent_id');
 
         if($evaluations->count() > 0) {
 
             $evaluation_ids = $evaluations->all();
-            $not_in_ids = self::whereNotIn('id', $evaluation_ids)->lists('id');
+            $not_in_ids = self::whereNotIn('id', $evaluation_ids)->pluck('id');
             $ids = $evaluations->merge($not_in_ids);
             $query->orderBy(\DB::raw('FIELD(id, '. $ids->implode(',') .')'));
 

@@ -27,9 +27,10 @@ class EvaluationServiceProvider extends ServiceProvider {
      */
     public function register()
     {
-        $this->app['evaluation'] = $this->app->share(function($app)
-        {
+        $this->app->singleton('evaluation', function(){
+
             return new Evaluation;
+
         });
 
         $this->publishes([
