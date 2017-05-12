@@ -71,7 +71,7 @@ Now you can use new methods from `EvaluationTrait`.
     $item->undislike($user_id);     // Remove a specific `dislike`
     $item->clearDislike();          // Remove all `dislikes` of a specific record
 
-    if($item->hasDisike($user_id)) {  // Check if a record has `dislike` of a user
+    if($item->hasDislike($user_id)) {  // Check if a record has `dislike` of a user
 
         echo 'Has it';
 
