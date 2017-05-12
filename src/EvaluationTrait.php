@@ -211,12 +211,12 @@ trait EvaluationTrait {
 
     // Scope
     
-    public function scopeGetEvaluations($query, $type, $userId = null)
+    public function scopeGetEvaluations($query, $type, $user_id = null)
     {
         $type_id = $this->getTypeId($type);
         
-        return $query->whereHas('evaluations', function($q) use($userId, $type_id) {
-            $q->where('user_id', '=', $userId)
+        return $query->whereHas('evaluations', function($q) use($user_id, $type_id) {
+            $q->where('user_id', '=', $user_id)
               ->where('type_id', '=', $type_id);
         });
     }
