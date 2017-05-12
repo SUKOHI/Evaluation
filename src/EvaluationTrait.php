@@ -210,7 +210,17 @@ trait EvaluationTrait {
     }
 
     // Scope
-
+    
+    public function scopeGetEvaluations($query, $type, $userId = null)
+    {
+        $type_id = $this->getTypeId($type);
+        
+        return $query->whereHas('evaluations', function($q) use($userId, $type_id) {
+            $q->where('user_id', '=', $userId)
+              ->where('type_id', '=', $type_id);
+        });
+    }
+    
     public function scopeOrderByEvaluation($query, $type, $direction = 'asc')
     {
         $type_id = $this->getTypeId($type);
