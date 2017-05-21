@@ -113,6 +113,45 @@ Now you can use new methods from `EvaluationTrait`.
 
     echo $item->rememberCount;      // Get count
 
+# Where Clause
+
+    $type = 'like'; // like, dislike, favorite or remember
+    $user_id = 1;
+
+    // And
+    $items = \App\Item::whereHasEvaluations($type)->get();
+    $items = \App\Item::whereHasEvaluations($type, $user_id)->get();    // with User ID
+    
+    // Or
+    $items = \App\Item::where('id', 1)->orWhereHasEvaluations($type)->get();
+    $items = \App\Item::where('id', 1)->orWhereHasEvaluations($type, $user_id)->get();    // with User ID
+
+or  
+
+    $user_id = 1;
+
+    // Like
+    $items = \App\Item::whereHasLike()->get();
+    $items = \App\Item::whereHasLike($user_id)->get();
+    $items = \App\Item::where('id', 1)->orWhereHasLike($user_id)->get();
+
+    // Dislike
+    $items = \App\Item::whereHasDislike()->get();
+    $items = \App\Item::whereHasDislike($user_id)->get();
+    $items = \App\Item::where('id', 1)->orWhereHasDislike($user_id)->get();
+
+    // Favorite
+    $items = \App\Item::whereHasFavorite()->get();
+    $items = \App\Item::whereHasFavorite($user_id)->get();
+    $items = \App\Item::where('id', 1)->orWhereHasFavorite($user_id)->get();
+
+    // Remember
+    $items = \App\Item::whereHasRemember()->get();
+    $items = \App\Item::whereHasRemember($user_id)->get();
+    $items = \App\Item::where('id', 1)->orWhereHasRemember($user_id)->get();
+
+* This feature is from [hikernl](https://github.com/hikernl). Thank you!
+
 # Order By Clause
 
     $direction = 'asc'; // or desc
