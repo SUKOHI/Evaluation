@@ -210,7 +210,70 @@ trait EvaluationTrait {
     }
 
     // Scope
+    
+    public function scopeWhereHasEvaluations($query, $type, $user_id = null, $boolean = 'and')
+    {
+        $type_id = $this->getTypeId($type);
+        $where_method = ($boolean == 'or') ? 'orWhereHas' : 'whereHas';
 
+        return $query->$where_method('evaluations', function($q) use($user_id, $type_id) {
+
+            if(!is_null($user_id)) {
+
+                $q->where('user_id', $user_id);
+
+            }
+
+            $q->where('type_id', $type_id);
+
+        });
+    }
+
+    public function scopeOrWhereHasEvaluations($query, $type, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, $type, $user_id, 'or');
+    }
+
+    public function scopeWhereHasLike($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'like', $user_id);
+    }
+
+    public function scopeOrWhereHasLike($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'like', $user_id, 'or');
+    }
+
+    public function scopeWhereHasDislike($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'dislike', $user_id);
+    }
+
+    public function scopeOrWhereHasDislike($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'dislike', $user_id, 'or');
+    }
+
+    public function scopeWhereHasFavorite($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'favorite', $user_id);
+    }
+
+    public function scopeOrWhereHasFavorite($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'favorite', $user_id, 'or');
+    }
+
+    public function scopeWhereHasRemember($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'remember', $user_id);
+    }
+
+    public function scopeOrWhereHasRemember($query, $user_id = null)
+    {
+        return $this->scopeWhereHasEvaluations($query, 'remember', $user_id, 'or');
+    }
+    
     public function scopeOrderByEvaluation($query, $type, $direction = 'asc')
     {
         $type_id = $this->getTypeId($type);
