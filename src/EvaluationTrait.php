@@ -225,15 +225,17 @@ trait EvaluationTrait {
 
         return $evaluations->contains(function($value) use($params, $duplications) {
 
-            $checking_user_id = array_get($params, 'user_id', -1);
-            $checking_ip = array_get($params, 'ip', null);
-            $checking_user_agent = array_get($params, 'user_agent', null);
+            foreach ($this->evaluation_filter_columns as $column) {
 
-            return (
-                $value->user_id == $checking_user_id ||
-                $value->ip == $checking_ip ||
-                $value->user_agent == $checking_user_agent
-            );
+                if(array_has($params, $column) && $value->{$column} == $params[$column]) {
+
+                    return true;
+
+                }
+
+            }
+
+            return false;
 
         });
     }
