@@ -223,11 +223,19 @@ Or
 
 If you want to allow users to add duplicate evaluation point(s), please use the following methods.
 
-    $item->allowDuplicationByUserId($boolean);      // Default: false
+    $music->allowEvaluationDuplications([
+        'user_id' => false,
+        'ip' => false,
+        'user_agent' => true,
+    ]);
     
-    $item->allowDuplicationByIpAddress($boolean);   // Default: false
+    // or
+
+    $item->allowEvaluationDuplicationByUserId($boolean);      // Default: false
     
-    $item->allowDuplicationByUserAgent($boolean);   // Default: true
+    $item->allowEvaluationDuplicationByIpAddress($boolean);   // Default: false
+    
+    $item->allowEvaluationDuplicationByUserAgent($boolean);   // Default: true
         
 Note: `favorite` and `remember` can NOT duplicate user ID per item because they should solely have the point.
         

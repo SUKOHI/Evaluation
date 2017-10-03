@@ -256,24 +256,38 @@ trait EvaluationTrait {
 
     // Allow
 
-    public function allowDuplicationByUserId($boolean) {
+    public function allowEvaluationDuplicationByUserId($boolean) {
 
         $this->evaluations_allow_duplications['user_id'] = $boolean;
         return $this;
 
     }
 
-    public function allowDuplicationByIpAddress($boolean) {
+    public function allowEvaluationDuplicationByIpAddress($boolean) {
 
         $this->evaluations_allow_duplications['ip'] = $boolean;
         return $this;
 
     }
 
-    public function allowDuplicationByUserAgent($boolean) {
+    public function allowEvaluationDuplicationByUserAgent($boolean) {
 
         $this->evaluations_allow_duplications['user_agent'] = $boolean;
         return $this;
+
+    }
+
+    public function allowEvaluationDuplications($duplications) {
+
+        foreach ($this->evaluation_filter_columns as $column) {
+
+            if(array_has($duplications, $column)) {
+
+                $this->evaluations_allow_duplications[$column] = $duplications[$column];
+
+            }
+
+        }
 
     }
 
