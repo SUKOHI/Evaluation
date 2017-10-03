@@ -21,7 +21,7 @@ trait EvaluationTrait {
         'favorite' => ['start' => null, 'end' => null],
         'remember' => ['start' => null, 'end' => null]
     ];
-    protected $evaluations_allow_duplications = [
+    private $evaluation_allow_duplications = [
         'user_id' => false,
         'ip' => false,
         'user_agent' => true
