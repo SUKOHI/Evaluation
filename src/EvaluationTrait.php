@@ -4,13 +4,16 @@ use Sukohi\Evaluation\Evaluation;
 
 trait EvaluationTrait {
 
-    private $evaluations_init_flag = false;
-    private $evaluations_user_ids = [];
     private $evaluations_types = [
         '1' => 'like',
         '2' => 'dislike',
         '3' => 'favorite',
         '4' => 'remember'
+    ];
+    private $evaluation_filter_columns = [
+        'user_id',
+        'ip',
+        'user_agent'
     ];
     private $evaluation_time_ranges = [
         'like' => ['start' => null, 'end' => null],
@@ -18,24 +21,27 @@ trait EvaluationTrait {
         'favorite' => ['start' => null, 'end' => null],
         'remember' => ['start' => null, 'end' => null]
     ];
+    protected $evaluations_allow_duplications = [
+        'user_id' => false,
+        'ip' => false,
+        'user_agent' => true
+    ];
 
-    // Relationships
-
+    // Relationship
     public function evaluations()
     {
-        return $this->hasMany('Sukohi\Evaluation\Evaluation', 'parent_id', 'id')->where('model', __CLASS__);
+        return $this->hasMany('Sukohi\Evaluation\Evaluation', 'parent_id', 'id')->where('parent', __CLASS__);
     }
 
     // Like
-
     public function like($user_id)
     {
         return $this->addEvaluation('like', $user_id);
     }
 
-    public function unlike($user_id)
+    public function unlike($params)
     {
-        return $this->removeEvaluation('like', $user_id);
+        return $this->removeEvaluation('like', $params);
     }
 
     public function clearLike()
@@ -43,9 +49,9 @@ trait EvaluationTrait {
         return $this->clearEvaluation('like');
     }
 
-    public function hasLike($user_id)
+    public function hasLike($params)
     {
-        return $this->hasEvaluation('like', $user_id);
+        return $this->hasEvaluation('like', $params);
     }
 
     public function getLikeCountAttribute()
@@ -54,15 +60,14 @@ trait EvaluationTrait {
     }
 
     // Dislike
-
     public function dislike($user_id)
     {
         return $this->addEvaluation('dislike', $user_id);
     }
 
-    public function undislike($user_id)
+    public function undislike($params)
     {
-        return $this->removeEvaluation('dislike', $user_id);
+        return $this->removeEvaluation('dislike', $params);
     }
 
     public function clearDislike()
@@ -70,9 +75,9 @@ trait EvaluationTrait {
         return $this->clearEvaluation('dislike');
     }
 
-    public function hasDislike($user_id)
+    public function hasDislike($params)
     {
-        return $this->hasEvaluation('dislike', $user_id);
+        return $this->hasEvaluation('dislike', $params);
     }
 
     public function getDislikeCountAttribute()
@@ -81,15 +86,14 @@ trait EvaluationTrait {
     }
 
     // Favorite
-
     public function favorite($user_id)
     {
         return $this->addEvaluation('favorite', $user_id);
     }
 
-    public function unfavorite($user_id)
+    public function unfavorite($params)
     {
-        return $this->removeEvaluation('favorite', $user_id);
+        return $this->removeEvaluation('favorite', $params);
     }
 
     public function clearFavorite()
@@ -97,9 +101,9 @@ trait EvaluationTrait {
         return $this->clearEvaluation('favorite');
     }
 
-    public function hasFavorite($user_id)
+    public function hasFavorite($params)
     {
-        return $this->hasEvaluation('favorite', $user_id);
+        return $this->hasEvaluation('favorite', $params);
     }
 
     public function getFavoriteCountAttribute()
@@ -108,15 +112,14 @@ trait EvaluationTrait {
     }
 
     // Remember
-
     public function remember($user_id)
     {
         return $this->addEvaluation('remember', $user_id);
     }
 
-    public function unremember($user_id)
+    public function unremember($params)
     {
-        return $this->removeEvaluation('remember', $user_id);
+        return $this->removeEvaluation('remember', $params);
     }
 
     public function clearRemember()
@@ -124,9 +127,9 @@ trait EvaluationTrait {
         return $this->clearEvaluation('remember');
     }
 
-    public function hasRemember($user_id)
+    public function hasRemember($params)
     {
-        return $this->hasEvaluation('remember', $user_id);
+        return $this->hasEvaluation('remember', $params);
     }
 
     public function getRememberCountAttribute()
@@ -138,89 +141,164 @@ trait EvaluationTrait {
 
     private function addEvaluation($type, $user_id)
     {
-        $this->evaluationInit();
+        $user_id = intval($user_id);
+        $ip = request()->ip();
+        $user_agent = request()->userAgent();
+        $allow_user_id = $this->evaluations_allow_duplications['user_id'];
+        $allow_ip = $this->evaluations_allow_duplications['ip'];
+        $allow_user_agent = $this->evaluations_allow_duplications['user_agent'];
 
-        if($this->hasEvaluation($type, $user_id)) {
+        if(in_array($type, ['favorite', 'remember'])) {
+
+            $allow_user_id = false;
+
+        }
+
+        if(!$allow_user_id && $this->hasEvaluation($type, ['user_id' => $user_id])) {
+
+            return false;
+
+        } else if(!$allow_ip && $this->hasEvaluation($type, ['ip' => $ip])) {
+
+            return false;
+
+        } else if(!$allow_user_agent && $this->hasEvaluation($type, ['user_agent' => $user_agent])) {
 
             return false;
 
         }
 
-        $this->evaluations_user_ids[$type][$user_id] = true;
         $evaluation = new Evaluation;
-        $evaluation->model = __CLASS__;
+        $evaluation->parent = __CLASS__;
         $evaluation->parent_id = $this->id;
         $evaluation->type_id = $this->getTypeId($type);
         $evaluation->user_id = $user_id;
+        $evaluation->ip = $ip;
+        $evaluation->user_agent = $user_agent;
         $evaluation->save();
-
     }
 
-    private function removeEvaluation($type, $user_id)
+    private function removeEvaluation($type, $params)
     {
-        $this->evaluationInit();
-        $this->evaluations_user_ids[$type][$user_id] = false;
-        return $this->whereEvaluationCommon($type, $user_id)->delete();
+        if(!is_array($params)) {
+
+            $params = ['user_id' => $params];
+
+        }
+
+        $type_id = $this->getTypeId($type);
+        $query = Evaluation::where('parent', __CLASS__)
+            ->where('parent_id', $this->id)
+            ->where('type_id', $type_id);
+
+        foreach ($this->evaluation_filter_columns as $column) {
+
+            if(array_has($params, $column)) {
+
+                $query->where($column, $params[$column]);
+
+            }
+
+        }
+
+        return $query->delete();
     }
 
     private function clearEvaluation($type)
     {
-        $this->evaluationInit();
+        $this->load('evaluations');
+        $ids = $this->getTypeEvaluations($type)->pluck('id');
+        return Evaluation::whereIn('id', $ids)->delete();
+    }
 
-        foreach ($this->evaluations_user_ids[$type] as $user_id => $boolean) {
+    private function hasEvaluation($type, $params)
+    {
+        if(!is_array($params)) {
 
-            $this->evaluations_user_ids[$type][$user_id] = false;
+            $params = ['user_id' => $params];
 
         }
 
-        return $this->whereEvaluationCommon($type)->delete();
-    }
+        $this->load('evaluations');
+        $evaluations = $this->getTypeEvaluations($type);
+        $duplications = $this->evaluations_allow_duplications;
 
-    private function hasEvaluation($type, $user_id)
-    {
-        $this->evaluationInit();
-        return array_get($this->evaluations_user_ids[$type], $user_id, false);
+        return $evaluations->contains(function($value) use($params, $duplications) {
+
+            $checking_user_id = array_get($params, 'user_id', -1);
+            $checking_ip = array_get($params, 'ip', null);
+            $checking_user_agent = array_get($params, 'user_agent', null);
+
+            return (
+                $value->user_id == $checking_user_id ||
+                $value->ip == $checking_ip ||
+                $value->user_agent == $checking_user_agent
+            );
+
+        });
     }
 
     private function evaluationCount($type)
     {
-        $this->evaluationInit();
-        $evaluations = array_where($this->evaluations_user_ids[$type], function($user_id, $value){
-
-            return $value;
-
-        });
-        return count($evaluations);
+        $this->load('evaluations');
+        return $this->getTypeEvaluations($type)->count();
     }
 
-    private function whereEvaluationCommon($type, $user_id = -1)
-    {
-        $type_id = $this->getTypeId($type);
-        $query = Evaluation::where('model', __CLASS__)
-            ->where('parent_id', $this->id)
-            ->where('type_id', $type_id);
+    private function getTypeEvaluations($type) {
 
-        if($user_id > 0) {
+        return $this->evaluations->filter(function ($value) use($type) {
 
-            $query->where('user_id', $user_id);
+            return ($value->type_id == $this->getTypeId($type));
 
-        }
+        });
 
-        return $query;
+    }
+
+    // Allow
+
+    public function allowDuplicationByUserId($boolean) {
+
+        $this->evaluations_allow_duplications['user_id'] = $boolean;
+        return $this;
+
+    }
+
+    public function allowDuplicationByIpAddress($boolean) {
+
+        $this->evaluations_allow_duplications['ip'] = $boolean;
+        return $this;
+
+    }
+
+    public function allowDuplicationByUserAgent($boolean) {
+
+        $this->evaluations_allow_duplications['user_agent'] = $boolean;
+        return $this;
+
     }
 
     // Scope
     
-    public function scopeWhereHasEvaluations($query, $type, $user_id = null, $boolean = 'and')
+    public function scopeWhereHasEvaluations($query, $type, $params, $boolean = 'and')
     {
+        if(!is_array($params)) {
+
+            $params = ['user_id' => $params];
+
+        }
+
         $type_id = $this->getTypeId($type);
         $where_method = ($boolean == 'or') ? 'orWhereHas' : 'whereHas';
 
-        return $query->$where_method('evaluations', function($q) use($user_id, $type_id) {
+        return $query->$where_method('evaluations', function($q) use($params, $type_id) {
 
-            if(!is_null($user_id)) {
+            foreach ($this->evaluation_filter_columns as $column) {
 
-                $q->where('user_id', $user_id);
+                if(array_has($params, $column)) {
+
+                    $q->where($column, $params[$column]);
+
+                }
 
             }
 
@@ -229,56 +307,56 @@ trait EvaluationTrait {
         });
     }
 
-    public function scopeOrWhereHasEvaluations($query, $type, $user_id = null)
+    public function scopeOrWhereHasEvaluations($query, $type, $params)
     {
-        return $this->scopeWhereHasEvaluations($query, $type, $user_id, 'or');
+        return $this->scopeWhereHasEvaluations($query, $type, $params, 'or');
     }
 
-    public function scopeWhereHasLike($query, $user_id = null)
+    public function scopeWhereHasLike($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'like', $user_id);
+        return $this->scopeWhereHasEvaluations($query, 'like', $params);
     }
 
-    public function scopeOrWhereHasLike($query, $user_id = null)
+    public function scopeOrWhereHasLike($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'like', $user_id, 'or');
+        return $this->scopeWhereHasEvaluations($query, 'like', $params, 'or');
     }
 
-    public function scopeWhereHasDislike($query, $user_id = null)
+    public function scopeWhereHasDislike($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'dislike', $user_id);
+        return $this->scopeWhereHasEvaluations($query, 'dislike', $params);
     }
 
-    public function scopeOrWhereHasDislike($query, $user_id = null)
+    public function scopeOrWhereHasDislike($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'dislike', $user_id, 'or');
+        return $this->scopeWhereHasEvaluations($query, 'dislike', $params, 'or');
     }
 
-    public function scopeWhereHasFavorite($query, $user_id = null)
+    public function scopeWhereHasFavorite($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'favorite', $user_id);
+        return $this->scopeWhereHasEvaluations($query, 'favorite', $params);
     }
 
-    public function scopeOrWhereHasFavorite($query, $user_id = null)
+    public function scopeOrWhereHasFavorite($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'favorite', $user_id, 'or');
+        return $this->scopeWhereHasEvaluations($query, 'favorite', $params, 'or');
     }
 
-    public function scopeWhereHasRemember($query, $user_id = null)
+    public function scopeWhereHasRemember($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'remember', $user_id);
+        return $this->scopeWhereHasEvaluations($query, 'remember', $params);
     }
 
-    public function scopeOrWhereHasRemember($query, $user_id = null)
+    public function scopeOrWhereHasRemember($query, $params = [])
     {
-        return $this->scopeWhereHasEvaluations($query, 'remember', $user_id, 'or');
+        return $this->scopeWhereHasEvaluations($query, 'remember', $params, 'or');
     }
     
     public function scopeOrderByEvaluation($query, $type, $direction = 'asc')
     {
         $type_id = $this->getTypeId($type);
         $evaluations = Evaluation::select(\DB::raw('COUNT(id) AS COUNT_ID'), 'parent_id')
-            ->where('model', __CLASS__)
+            ->where('parent', __CLASS__)
             ->where('type_id', $type_id)
             ->groupBy('parent_id')
             ->orderBy('COUNT_ID', $direction)
@@ -317,48 +395,8 @@ trait EvaluationTrait {
     }
 
     // Others
-
-    private function evaluationInit()
-    {
-        if(!$this->evaluations_init_flag) {
-
-            $this->load('evaluations');
-
-            foreach ($this->evaluations_types as $type) {
-
-                $this->evaluations_user_ids[$type] = [];
-
-            }
-            
-            $this->evaluations_init_flag = true;
-            $evaluations = $this->evaluations;
-
-            if($evaluations->count() > 0) {
-
-                foreach ($evaluations as $evaluation) {
-
-                    $type_id = $evaluation->type_id;
-                    $type = $this->evaluations_types[$type_id];
-                    $user_id = $evaluation->user_id;
-                    $this->evaluations_user_ids[$type][$user_id] = true;
-
-                }
-
-            }
-
-        }
-
-    }
-
     private function getTypeId($type)
     {
         return array_search($type, $this->evaluations_types);
-    }
-
-    public static function removeAllEvaluationsByUserId($user_id)
-    {
-        return Evaluation::where('model', __CLASS__)
-            ->where('user_id', $user_id)
-            ->delete();
     }
 }
