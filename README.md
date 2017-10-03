@@ -228,19 +228,6 @@ If you want to allow users to add duplicate evaluation point(s), please use the 
     $item->allowDuplicationByIpAddress($boolean);   // Default: false
     
     $item->allowDuplicationByUserAgent($boolean);   // Default: true
-    
-Or you also can set the values in your model like so.
-
-        class Item extends Model
-        {
-            use EvaluationTrait;
-            
-            protected $evaluations_allow_duplications = [ // <- here
-                'user_id' => false,
-                'ip' => false,
-                'user_agent' => true
-            ];
-        }
         
 Note: `favorite` and `remember` can NOT duplicate user ID per item because they should solely have the point.
         
