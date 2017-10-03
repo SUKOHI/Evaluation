@@ -34,7 +34,7 @@ trait EvaluationTrait {
     }
 
     // Like
-    public function like($user_id)
+    public function like($user_id = -1)
     {
         return $this->addEvaluation('like', $user_id);
     }
@@ -60,7 +60,7 @@ trait EvaluationTrait {
     }
 
     // Dislike
-    public function dislike($user_id)
+    public function dislike($user_id = -1)
     {
         return $this->addEvaluation('dislike', $user_id);
     }
@@ -86,7 +86,7 @@ trait EvaluationTrait {
     }
 
     // Favorite
-    public function favorite($user_id)
+    public function favorite($user_id = -1)
     {
         return $this->addEvaluation('favorite', $user_id);
     }
@@ -112,7 +112,7 @@ trait EvaluationTrait {
     }
 
     // Remember
-    public function remember($user_id)
+    public function remember($user_id = -1)
     {
         return $this->addEvaluation('remember', $user_id);
     }
@@ -144,9 +144,9 @@ trait EvaluationTrait {
         $user_id = intval($user_id);
         $ip = request()->ip();
         $user_agent = request()->userAgent();
-        $allow_user_id = $this->evaluations_allow_duplications['user_id'];
-        $allow_ip = $this->evaluations_allow_duplications['ip'];
-        $allow_user_agent = $this->evaluations_allow_duplications['user_agent'];
+        $allow_user_id = $this->evaluation_allow_duplications['user_id'];
+        $allow_ip = $this->evaluation_allow_duplications['ip'];
+        $allow_user_agent = $this->evaluation_allow_duplications['user_agent'];
 
         if(in_array($type, ['favorite', 'remember'])) {
 
@@ -221,7 +221,7 @@ trait EvaluationTrait {
 
         $this->load('evaluations');
         $evaluations = $this->getTypeEvaluations($type);
-        $duplications = $this->evaluations_allow_duplications;
+        $duplications = $this->evaluation_allow_duplications;
 
         return $evaluations->contains(function($value) use($params, $duplications) {
 
@@ -258,21 +258,21 @@ trait EvaluationTrait {
 
     public function allowEvaluationDuplicationByUserId($boolean) {
 
-        $this->evaluations_allow_duplications['user_id'] = $boolean;
+        $this->evaluation_allow_duplications['user_id'] = $boolean;
         return $this;
 
     }
 
     public function allowEvaluationDuplicationByIpAddress($boolean) {
 
-        $this->evaluations_allow_duplications['ip'] = $boolean;
+        $this->evaluation_allow_duplications['ip'] = $boolean;
         return $this;
 
     }
 
     public function allowEvaluationDuplicationByUserAgent($boolean) {
 
-        $this->evaluations_allow_duplications['user_agent'] = $boolean;
+        $this->evaluation_allow_duplications['user_agent'] = $boolean;
         return $this;
 
     }
@@ -283,7 +283,7 @@ trait EvaluationTrait {
 
             if(array_has($duplications, $column)) {
 
-                $this->evaluations_allow_duplications[$column] = $duplications[$column];
+                $this->evaluation_allow_duplications[$column] = $duplications[$column];
 
             }
 

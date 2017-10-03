@@ -18,7 +18,7 @@ class CreateEvaluationsTable extends Migration
             $table->string('parent')->comment('Model name');
             $table->integer('parent_id')->comment('Model ID');
             $table->integer('type_id')->comment('Evaluation type ID');
-            $table->integer('user_id')->unsigned()->comment('User ID');
+            $table->integer('user_id')->comment('User ID');
             $table->string('ip')->nullable()->comment('IP address');
             $table->string('user_agent')->nullable()->comment('User-Agent');
             $table->timestamps();
